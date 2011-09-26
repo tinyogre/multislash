@@ -23,21 +23,21 @@ as submodules.  If you don't want to install them system-wide, you can
 install them in a virtualenv like so (use pip or easy_install to get
 virtualenv first).  This is what I do.
 
-virtualenv env
-. env/bin/activate
-git submodule init
-git submodule update
-cd tornado
-python setup.py install
-cd ../tornadio
-python setup.py install
+		   virtualenv env
+		   . env/bin/activate
+		   git submodule init
+		   git submodule update
+		   cd tornado
+		   python setup.py install
+		   cd ../tornadio
+		   python setup.py install
 
 Remember to ". env/bin/activate" before running/working on multislash in the future
 
 How to "play"
 -------------
 Run the server:
-python server.py
+	python server.py
 
 Connect browsers to http://localhost:8001/.  Click in canvas and use arrow keys.
 
