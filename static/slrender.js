@@ -15,15 +15,21 @@ function slrender() {
 	this.sprites.src = '/static/images/spritesheet.png';
 	this.spritesPerLine = 16;
 
-	this.plx = 16;
-	this.ply = 16;
+	this.locs = new Array();
+
+	this.set_loc = function(id, x, y) {
+		this.locs[id] = [x, y];
+	}
 
 	this.get_tile = function(x, y) {
-		if(x == this.plx && y == this.ply) {
-			return 1;
-		} else {
-			return 0;
+		for(var i = 0; i < this.locs.length; i++) {
+			if(this.locs[i]) {
+				if(this.locs[i][0] == x && this.locs[i][1] == y) {
+					return 1;
+				}
+			}
 		}
+		return 0;
 	}
 
 	this.render = function() {

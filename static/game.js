@@ -1,7 +1,9 @@
 
 var idleTimer;
-var framerate = 1000/60;
+var framerate = 1000/20;
 var render;
+var sock;
+var my_id;
 
 function log(a) {
 	$("#log").append(a+"<br/>");
@@ -14,6 +16,24 @@ function idle() {
 
 function start_game() {
 
+	sock = new io.Socket(window.location.hostname, {port: 8001, rememberTransport: false});
+	sock.connect();
+
+	sock.addEvent('connect', function() {
+			sock.send({chat: 'Hey, I joined!'});
+        });
+
+	sock.addEvent('message', function(data) {
+			if(data.chat) {
+				log(data.chat);
+			} else if(data.init) {
+				my_id = data.init.id;
+				render.set_loc(my_id, data.init.x, data.init.y);
+			} else if(data.update) {
+				render.set_loc(data.update.id, data.update.x, data.update.y);
+			}
+		});
+
 	render = new slrender();
 	$("#game")
 		// Add tab index to ensure the canvas retains focus
@@ -23,19 +43,19 @@ function start_game() {
 		.keydown(function(e){ 
 				switch(e.keyCode) {
 					case 37: // left
-						render.plx--;
+						sock.send({move: 'left'});
 						break;
 					case 38: // up
-						render.ply--;
+						sock.send({move: 'up'});
 						break;
 					case 39: // right
-						render.plx++;
+						sock.send({move: 'right'});
 						break;
 					case 40: // down
-						render.ply++;
+						sock.send({move: 'down'});
 						break;
 				}
-				return false; 
+				return false;
 			});
 
 	// Run the first tick now, which will set itself up for more ticks

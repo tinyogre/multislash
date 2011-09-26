@@ -13,24 +13,41 @@ class IndexHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html")
 
-# FIXME should not be writing code for this, serve it from a plain old http server
-class StaticHandler(tornado.web.RequestHandler):
-    def get(self, aaa):
-        print "GET " + aaa
-        print self.request
-        self.render("static/" + aaa)
+next_id = 1
 
-class ChatConnection(tornadio.SocketConnection):
+class PlayerConn(tornadio.SocketConnection):
     # Class level variable
     participants = set()
 
     def on_open(self, *args, **kwargs):
+        global next_id
         self.participants.add(self)
-        self.send("Welcome!")
-
+        self.id = next_id;
+        print 'Created player ' + str(self.id)
+        next_id += 1;
+        self.x = 30;
+        self.y = 22;
+        self.send({'init': {'id': self.id,
+                            'x': self.x, 
+                            'y': self.y}})
+        
     def on_message(self, message):
+        if 'move' in message:
+            dir = message['move']
+            if dir == 'left':
+                self.x -= 1
+            elif dir == 'up':
+                self.y -= 1
+            elif dir== 'right':
+                self.x += 1
+            elif dir == 'down':
+                self.y += 1
+
         for p in self.participants:
-            p.send(message)
+            print 'send'
+            p.send({'update': {'id': self.id,
+                               'x': self.x,
+                               'y': self.y}})
 
     def on_close(self):
         self.participants.remove(self)
@@ -42,7 +59,7 @@ settings = {
 }
 
 #use the routes classmethod to build the correct resource
-ChatRouter = tornadio.get_router(ChatConnection)
+ChatRouter = tornadio.get_router(PlayerConn)
 
 #configure the Tornado application
 application = tornado.web.Application(
