@@ -1,0 +1,6 @@
+[submodule "tornadio"]
+	path = tornadio
+	url = https://github.com/MrJoes/tornadio.git
+[submodule "tornado"]
+	path = tornado
+	url = https://github.com/facebook/tornado.git
