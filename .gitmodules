@@ -4,3 +4,6 @@
 [submodule "tornado"]
 	path = tornado
 	url = https://github.com/facebook/tornado.git
+[submodule "dynamicaudio"]
+	path = dynamicaudio
+	url = https://github.com/bfirsh/dynamicaudio.js.git

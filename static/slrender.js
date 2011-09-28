@@ -29,20 +29,32 @@ function slrender() {
 				}
 			}
 		}
-		return 0;
+		if(x >= this.map.length || y >= this.map[x].length) {
+			return -1;
+		} else {
+			return this.map[x][y]
+		}
 	}
 
+	this.set_map = function(map) {
+		this.map = map;
+		x = 0
+	}
+				
 	this.render = function() {
 		this.ctx.fillStyle="rgb(0,0,0)";
 		this.ctx.fillRect(0,0,1024,768);
 		
-		if(!this.imagesLoaded) {
+		if(!this.imagesLoaded || !this.map) {
 			return;
 		}
 
 		for(var y = 0; y < this.viewheight; y++) {
 			for(var x = 0; x < this.viewwidth; x++) {
 				var spid = this.get_tile(x, y);
+				if(spid < 0) {
+					continue;
+				}
 				this.ctx.drawImage(this.sprites, 
 								   (spid % this.spritesPerLine) * this.tilesize,
 								   Math.floor(spid / this.spritesPerLine) * this.tilesize,

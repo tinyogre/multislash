@@ -5,6 +5,10 @@ import tornado.web
 import tornadio
 import tornadio.router
 import tornadio.server
+import simplejson
+
+from map import Map
+import testmap
 
 ROOT = op.normpath(op.dirname(__file__))
 
@@ -14,6 +18,17 @@ class IndexHandler(tornado.web.RequestHandler):
         self.render("index.html")
 
 next_id = 1
+
+class Server:
+    def __init__(self):
+        self.map = Map()
+        self.map.generate()
+
+    def send(self, player, packet):
+        print simplejson.dumps(packet)
+        player.send(packet)
+
+server = Server()
 
 class PlayerConn(tornadio.SocketConnection):
     # Class level variable
@@ -27,9 +42,11 @@ class PlayerConn(tornadio.SocketConnection):
         next_id += 1;
         self.x = 30;
         self.y = 22;
-        self.send({'init': {'id': self.id,
-                            'x': self.x, 
-                            'y': self.y}})
+        packet = {'init': {'id': self.id,
+                           'x': self.x, 
+                           'y': self.y,
+                           'map': server.map.cells}}
+        server.send(self, packet)
         
     def on_message(self, message):
         if 'move' in message:
@@ -44,15 +61,15 @@ class PlayerConn(tornadio.SocketConnection):
                 self.y += 1
 
         for p in self.participants:
-            print 'send'
-            p.send({'update': {'id': self.id,
-                               'x': self.x,
-                               'y': self.y}})
+            server.send(p, {'update': {'id': self.id,
+                                       'x': self.x,
+                                       'y': self.y}})
 
     def on_close(self):
         self.participants.remove(self)
+        packet = {'left': {'id': self.id}}
         for p in self.participants:
-            p.send("A user has left.")
+            server.send(p, packet)
 
 settings = {
     'static_path': os.path.join(os.path.dirname(__file__), 'static'),

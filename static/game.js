@@ -28,9 +28,12 @@ function start_game() {
 				log(data.chat);
 			} else if(data.init) {
 				my_id = data.init.id;
+				render.set_map(data.init.map);
 				render.set_loc(my_id, data.init.x, data.init.y);
 			} else if(data.update) {
 				render.set_loc(data.update.id, data.update.x, data.update.y);
+			} else if(data.left) {
+				render.set_loc(data.left.id, -1, -1);
 			}
 		});
 
