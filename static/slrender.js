@@ -4,7 +4,7 @@ function slrender() {
 	this.ctx = this.canvas.getContext("2d");
 	this.tilesize = 16;
 	this.width = 1024;
-	this.height = 768;
+	this.height = 1024;
 
 	this.viewwidth = this.width / this.tilesize;
 	this.viewheight = this.height / this.tilesize;
@@ -43,7 +43,7 @@ function slrender() {
 				
 	this.render = function() {
 		this.ctx.fillStyle="rgb(0,0,0)";
-		this.ctx.fillRect(0,0,1024,768);
+		this.ctx.fillRect(0,0,this.width, this.height);
 		
 		if(!this.imagesLoaded || !this.map) {
 			return;
