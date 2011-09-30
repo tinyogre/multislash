@@ -7,7 +7,7 @@ import tornadio.router
 import tornadio.server
 import simplejson
 
-from map import Map
+from map import Map, SOLID_WALL
 import testmap
 
 ROOT = op.normpath(op.dirname(__file__))
@@ -40,8 +40,8 @@ class PlayerConn(tornadio.SocketConnection):
         self.id = next_id;
         print 'Created player ' + str(self.id)
         next_id += 1;
-        self.x = 30;
-        self.y = 22;
+        self.x = server.map.start[0]
+        self.y = server.map.start[1]
         packet = {'init': {'id': self.id,
                            'x': self.x, 
                            'y': self.y,
@@ -50,15 +50,22 @@ class PlayerConn(tornadio.SocketConnection):
         
     def on_message(self, message):
         if 'move' in message:
+            nx = self.x
+            ny = self.y
             dir = message['move']
             if dir == 'left':
-                self.x -= 1
+                nx -= 1
             elif dir == 'up':
-                self.y -= 1
+                ny -= 1
             elif dir== 'right':
-                self.x += 1
+                nx += 1
             elif dir == 'down':
-                self.y += 1
+                ny += 1
+            if server.map.cells[nx][ny] == SOLID_WALL:
+                return
+
+            self.x = nx
+            self.y = ny
 
         for p in self.participants:
             server.send(p, {'update': {'id': self.id,

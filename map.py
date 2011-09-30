@@ -1,5 +1,5 @@
 
-from random import randint
+from random import randint, random
 
 # W,H of whole map
 MAP_SIZE=64
@@ -14,6 +14,7 @@ MAX_ROOM=10
 MAX_HALL=10
 
 # Map of cell type to text char
+# Should match the sprite sheet
 textmap = \
     ' Y:?????????????' + \
     '789?????????????' + \
@@ -28,8 +29,8 @@ for c in xrange(len(textmap)):
 SOLID_WALL = mapvals['5']
 
 class Room:
-    types = ['rect',
-             'hall']
+    types = [('rect', 0.9),
+             ('hall', 0.1)]
              
     def __init__(self, type, x, y, w, h):
         self.type = type
@@ -92,54 +93,63 @@ class Map:
                     if x + room.x >= MAP_SIZE - 1:
                         break
                     self.cells[x+room.x][y+room.y] = 0
-        
+        if room.type == 'hall':
+            self.halls.append(room)
+
         self.rooms.append(room)
 
     def space_is_clear(self, x, y, w, h):
         for chky in xrange(h):
             if chky + y < 1 or chky + y >= MAP_SIZE - 2:
-                print 'oob'
                 return False
             for chkx in xrange(w):
                 if chkx + x < 1 or chkx + x >= MAP_SIZE - 2:
-                    print 'oob'
                     return False
 
                 if self.cells[chkx + x][chky + y] != SOLID_WALL:
-                    print "(%d,%d): %d" %(chkx + x, chky + y, self.cells[chkx + x][chky + y])
                     return False
-        print 'clear!'
         return True
 
+    def choose_type(self):
+        choice = random()
+        acc = 0
+        for t in Room.types:
+            acc += t[1]
+            if choice < acc:
+                return t[0]
+        
+        return Room.types[len(Room.types) - 1]
+        
     def generate_branching(self):
         self.rooms = []
+        self.halls = []
         # Start with a simple rectangular room
-        r = Room('rect',
-                 MAP_SIZE / 2, MAP_SIZE/2,
-                 randint(MIN_ROOM, MAX_ROOM),
-                 randint(MIN_ROOM, MAX_ROOM))
+        x = randint(MAX_ROOM + 1, MAP_SIZE - MAX_ROOM - 1)
+        y = randint(MAX_ROOM + 1, MAP_SIZE - MAX_ROOM - 1)
+        w = randint(MIN_ROOM, MAX_ROOM)
+        h = randint(MIN_ROOM, MAX_ROOM)
+        
+        r = Room('rect', x - w/2, y - w/2, w, h)
         self.excavate(r)
 
         for ri in xrange(NUM_ROOMS - 1):
-            # Pick a room to branch off from
-            startroom = self.rooms[randint(0, len(self.rooms) - 1)]
-            
-            print startroom
+            # Decide what kind of feature to add
+            type = self.choose_type()
+            if ri == 0:
+                type = 'hall'
+
+            if type == 'rect' and len(self.halls) > 0:
+                startroom = self.halls[randint(0, len(self.halls) - 1)]
+            else:
+                # Pick a room to branch off from
+                startroom = self.rooms[randint(0, len(self.rooms) - 1)]
 
             # Decide where to add something
             branchloc = startroom.pick_random_wall()
             
-            print branchloc
-
-            # Decide what kind of feature to add
-            type = Room.types[randint(0, len(Room.types) - 1)]
-            
-            print type
-
             if type == 'rect':
                 w = randint(MIN_ROOM, MAX_ROOM)
                 h = randint(MIN_ROOM, MAX_ROOM)
-                print "%dx%d" %(w,h)
                 if not self.space_is_clear(branchloc[0], branchloc[1], w, h):
                     continue
                 self.excavate(Room(type, branchloc[0], branchloc[1], w, h))
@@ -170,6 +180,7 @@ class Map:
 
     def generate(self):
         self.generate_branching()
+        self.start = (self.rooms[0].x + self.rooms[0].w/2, self.rooms[0].y + self.rooms[0].h/2)
 
     def cell_char(self, val):
         return textmap[val]
