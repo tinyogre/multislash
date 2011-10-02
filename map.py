@@ -17,8 +17,8 @@ MAX_HALL=10
 # Should match the sprite sheet
 textmap = \
     ' Y:?????????????' + \
-    '789?????????????' + \
-    '456?????????????' + \
+    '789+????????????' + \
+    '456-????????????' + \
     '123?????????????'
 
 # Create reverse map for loading pre-drawn map
@@ -27,10 +27,12 @@ for c in xrange(len(textmap)):
     mapvals[textmap[c]] = c
 
 SOLID_WALL = mapvals['5']
+CLOSED_DOOR = mapvals['+']
+OPEN_DOOR = mapvals['-']
 
 class Room:
-    types = [('rect', 0.9),
-             ('hall', 0.1)]
+    types = [('rect', 0.75),
+             ('hall', 0.25)]
              
     def __init__(self, type, x, y, w, h):
         self.type = type
@@ -92,7 +94,8 @@ class Map:
                 for x in xrange(room.w):
                     if x + room.x >= MAP_SIZE - 1:
                         break
-                    self.cells[x+room.x][y+room.y] = 0
+                    if self.cells[x + room.x][y + room.y] == SOLID_WALL:
+                        self.cells[x+room.x][y+room.y] = 0
         if room.type == 'hall':
             self.halls.append(room)
 
@@ -150,9 +153,23 @@ class Map:
             if type == 'rect':
                 w = randint(MIN_ROOM, MAX_ROOM)
                 h = randint(MIN_ROOM, MAX_ROOM)
-                if not self.space_is_clear(branchloc[0], branchloc[1], w, h):
+                if branchloc[2] == 1:
+                    y = branchloc[1] - h
+                    x = randint(branchloc[0] - w - 1, branchloc[0])
+                elif branchloc[2] == 2:
+                    x = branchloc[0] + 1
+                    y = randint(branchloc[1] - h - 1, branchloc[1])
+                elif branchloc[2] == 3:
+                    y = branchloc[1] + 1
+                    x = randint(branchloc[0] - w - 1, branchloc[0])
+                else:
+                    x = branchloc[2] - w
+                    y = randint(branchloc[1] - h - 1, branchloc[1])
+
+                if not self.space_is_clear(x, y, w, h):
                     continue
-                self.excavate(Room(type, branchloc[0], branchloc[1], w, h))
+                self.cells[branchloc[0]][branchloc[1]] = CLOSED_DOOR
+                self.excavate(Room(type, x, y, w, h))
             elif type == 'hall':
                 if branchloc[2] == 1:
                     x = branchloc[0]
@@ -176,7 +193,11 @@ class Map:
                     w = branchloc[0] - x + 1
                 if not self.space_is_clear(x, y, w, h):
                     continue
+                if startroom.type != 'hall':
+                    self.cells[branchloc[0]][branchloc[1]] = CLOSED_DOOR
+
                 self.excavate(Room(type, x, y, w, h))
+            print self
 
     def generate(self):
         self.generate_branching()
