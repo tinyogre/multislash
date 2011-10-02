@@ -102,14 +102,14 @@ class Map:
         self.rooms.append(room)
 
     def space_is_clear(self, x, y, w, h):
-        for chky in xrange(h):
-            if chky + y < 1 or chky + y >= MAP_SIZE - 2:
+        for chky in xrange(y - 1, y + h + 1):
+            if chky < 1 or chky >= MAP_SIZE - 2:
                 return False
-            for chkx in xrange(w):
-                if chkx + x < 1 or chkx + x >= MAP_SIZE - 2:
+            for chkx in xrange(x - 1, x + w + 1):
+                if chkx < 1 or chkx >= MAP_SIZE - 2:
                     return False
 
-                if self.cells[chkx + x][chky + y] != SOLID_WALL:
+                if self.cells[chkx][chky] != SOLID_WALL:
                     return False
         return True
 
@@ -155,16 +155,16 @@ class Map:
                 h = randint(MIN_ROOM, MAX_ROOM)
                 if branchloc[2] == 1:
                     y = branchloc[1] - h
-                    x = randint(branchloc[0] - w - 1, branchloc[0])
+                    x = randint(branchloc[0] - w + 1, branchloc[0])
                 elif branchloc[2] == 2:
                     x = branchloc[0] + 1
-                    y = randint(branchloc[1] - h - 1, branchloc[1])
+                    y = randint(branchloc[1] - h + 1, branchloc[1])
                 elif branchloc[2] == 3:
                     y = branchloc[1] + 1
-                    x = randint(branchloc[0] - w - 1, branchloc[0])
+                    x = randint(branchloc[0] - w + 1, branchloc[0])
                 else:
                     x = branchloc[2] - w
-                    y = randint(branchloc[1] - h - 1, branchloc[1])
+                    y = randint(branchloc[1] - h + 1, branchloc[1])
 
                 if not self.space_is_clear(x, y, w, h):
                     continue
@@ -175,26 +175,28 @@ class Map:
                     x = branchloc[0]
                     y = randint(branchloc[1] - MAX_HALL, branchloc[1] - 1)
                     w = 1
-                    h = branchloc[1] - y + 1
+                    h = branchloc[1] - y
                 elif branchloc[2] == 2:
-                    x = branchloc[0]
+                    x = branchloc[0] + 1
                     y = branchloc[1]
                     w = randint(2, MAX_HALL)
                     h = 1
                 elif branchloc[2] == 3:
                     x = branchloc[0]
-                    y = branchloc[1]
+                    y = branchloc[1] + 1
                     w = 1
                     h = randint(2, MAX_HALL)
                 elif branchloc[2] == 4:
                     x = randint(branchloc[0] - MAX_HALL, branchloc[0] - 1)
                     y = branchloc[1]
                     h = 1
-                    w = branchloc[0] - x + 1
+                    w = branchloc[0] - x
                 if not self.space_is_clear(x, y, w, h):
                     continue
                 if startroom.type != 'hall':
                     self.cells[branchloc[0]][branchloc[1]] = CLOSED_DOOR
+                else:
+                    self.cells[branchloc[0]][branchloc[1]] = 0
 
                 self.excavate(Room(type, x, y, w, h))
             print self
