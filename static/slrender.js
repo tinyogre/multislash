@@ -21,6 +21,16 @@ function slrender() {
 		this.locs[id] = [x, y];
 	}
 
+	this.remove_mob = function(id, x, y, type) {
+		if(this.map[x][y] == type) {
+			this.map[x][y] = 0;
+		}
+	}
+
+	this.add_mob = function(id, x, y, type) {
+		this.map[x][y] = type;
+	}
+		
 	this.get_tile = function(x, y) {
 		for(var i = 0; i < this.locs.length; i++) {
 			if(this.locs[i]) {
@@ -40,7 +50,7 @@ function slrender() {
 		this.map = map;
 		x = 0
 	}
-				
+	
 	this.render = function() {
 		this.ctx.fillStyle="rgb(0,0,0)";
 		this.ctx.fillRect(0,0,this.width, this.height);

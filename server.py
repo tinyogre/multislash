@@ -20,6 +20,8 @@ class IndexHandler(tornado.web.RequestHandler):
 next_id = 1
 
 class Server:
+    participants = set()
+
     def __init__(self):
         self.map = Map()
         self.map.generate()
@@ -28,15 +30,17 @@ class Server:
         print simplejson.dumps(packet)
         player.send(packet)
 
+    def broadcast(self, packet):
+        print 'broadcast: ' + simplejson.dumps(packet)
+        for p in self.participants:
+            p.send(packet)
+
 server = Server()
 
 class PlayerConn(tornadio.SocketConnection):
-    # Class level variable
-    participants = set()
-
     def on_open(self, *args, **kwargs):
         global next_id
-        self.participants.add(self)
+        server.participants.add(self)
         self.id = next_id;
         print 'Created player ' + str(self.id)
         next_id += 1;
@@ -61,21 +65,23 @@ class PlayerConn(tornadio.SocketConnection):
                 nx += 1
             elif dir == 'down':
                 ny += 1
-            if server.map.cells[nx][ny] == SOLID_WALL:
+            if not server.map.is_passable(nx, ny, self):
                 return
 
             self.x = nx
             self.y = ny
 
-        for p in self.participants:
+        for p in server.participants:
             server.send(p, {'update': {'id': self.id,
                                        'x': self.x,
                                        'y': self.y}})
+        server.map.tick(server)
+
 
     def on_close(self):
-        self.participants.remove(self)
+        server.participants.remove(self)
         packet = {'left': {'id': self.id}}
-        for p in self.participants:
+        for p in server.participants:
             server.send(p, packet)
 
 settings = {

@@ -4,6 +4,7 @@ var framerate = 1000/20;
 var render;
 var sock;
 var my_id;
+var mobs;
 
 function log(a) {
 	$("#log").append(a+"<br/>");
@@ -34,10 +35,14 @@ function start_game() {
 				render.set_loc(data.update.id, data.update.x, data.update.y);
 			} else if(data.left) {
 				render.set_loc(data.left.id, -1, -1);
+			} else if(data.mobupdate) {
+				mobs.update(data);
 			}
 		});
 
 	render = new slrender();
+	mobs = new moblist()
+
 	$("#game")
 		// Add tab index to ensure the canvas retains focus
 		.attr("tabindex", "0")

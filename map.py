@@ -1,5 +1,6 @@
 
 from random import randint, random
+from mob import Mob
 
 # W,H of whole map
 MAP_SIZE=64
@@ -16,7 +17,7 @@ MAX_HALL=10
 # Map of cell type to text char
 # Should match the sprite sheet
 textmap = \
-    ' Y:?????????????' + \
+    ' @z?????????????' + \
     '789+????????????' + \
     '456-????????????' + \
     '123?????????????'
@@ -29,6 +30,7 @@ for c in xrange(len(textmap)):
 SOLID_WALL = mapvals['5']
 CLOSED_DOOR = mapvals['+']
 OPEN_DOOR = mapvals['-']
+ZOMBIE = mapvals['z']
 
 class Room:
     types = [('rect', 0.75),
@@ -40,7 +42,8 @@ class Room:
         self.y = y
         self.w = w
         self.h = h
-    
+        self.next_mob = 1
+
     def pick_random_wall(self):
         if self.type == 'rect' or self.type == 'hall':
             # CSS order, top, right, bottom, left
@@ -201,8 +204,22 @@ class Map:
                 self.excavate(Room(type, x, y, w, h))
             print self
 
+    def add_mobs(self):
+        self.mobs = []
+        for r in self.rooms:
+            m = Mob(r.x + r.w/2, r.y + r.h/2, ZOMBIE)
+            self.mobs.append(m)
+
+    def is_passable(self, x, y, ob):
+        return self.cells[x][y] != SOLID_WALL
+
+    def tick(self, server):
+        for m in self.mobs:
+            m.tick(server, self)
+
     def generate(self):
         self.generate_branching()
+        self.add_mobs()
         self.start = (self.rooms[0].x + self.rooms[0].w/2, self.rooms[0].y + self.rooms[0].h/2)
 
     def cell_char(self, val):
